@@ -1,0 +1,28 @@
+{
+  "name": "youtube-timetracker",
+  "version": "1.0.0",
+  "description": "A simple timetracker for youtuber videos that shows you how much time you will spend to watch a list of videos based on your daily available time.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lipemenezes/youtube-timetracker.git"
+  },
+  "keywords": [
+    "youtube",
+    "timetracker"
+  ],
+  "author": "Felipe Menezes <lipe.menezes@live.com> (https://www.github.com/lipemenezes)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Lipemenezes/youtube-timetracker/issues"
+  },
+  "homepage": "https://github.com/Lipemenezes/youtube-timetracker#readme",
+  "dependencies": {
+    "consign": "^0.1.6",
+    "express": "^4.16.3",
+    "googleapis": "^32.0.0"
+  }
+}
