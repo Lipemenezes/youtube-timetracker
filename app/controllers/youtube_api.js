@@ -1,58 +1,40 @@
-
-// get authenticated api
-
 const {google} = require('googleapis');
 
-const YOUTUBE_API_KEY = "AIzaSyBYHwW5IaDM08kcsrd4egAiD247FtR8uDs";
+function getAuthenticatedAPI() {
+	const YOUTUBE_API_KEY = "";
 
-const youtube = google.youtube({
-	version: 'v3',
-	auth: YOUTUBE_API_KEY
-});
+	const youtube = google.youtube({
+		version: 'v3',
+		auth: YOUTUBE_API_KEY
+	});
 
-
-
-// prepare information
-
-const GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST = 50;
-let maxResults = 200;
-
-if (maxResults > 200)
-	maxResults = 200;
-
-var numberOfRequestsPerPage = [];
-let i = maxResults;
-while (i > 0) {
-	if (i >= GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST) {
-		numberOfRequestsPerPage.push(GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST);
-		i -= GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST;
-	} else {
-		numberOfRequestsPerPage.push(i);
-		i -= i;
-	}
+	return youtube;
 }
 
-
-
-let videosList = [];
-var promises = [];
-let query = 'python';
-getYoutubeVideosInformation( {query, numberOfRequestsPerPage, iterator: 0} )
-	.catch(err => console.log('main err ', err))
-
-
-function getYoutubeVideosInformation( {query, pageToken, numberOfRequestsPerPage, iterator} ) {
-	if (iterator >= numberOfRequestsPerPage.length) {
-		console.log ('finish iterate ', iterator, ' ', numberOfRequestsPerPage.length)
-		return null
+function getNumberOfResultsPerPage( {maxResults} ) {
+	let numberOfResultsPerPage = [];
+	let i = maxResults;
+	while (i > 0) {
+		if (i >= GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST) {
+			numberOfResultsPerPage.push(GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST);
+			i -= GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST;
+		} else {
+			numberOfResultsPerPage.push(i);
+			i -= i;
+		}
 	}
-	var promise = new Promise((resolve, reject) => {
+	return numberOfResultsPerPage;
+}
+
+function getYoutubeVideosInformation( {query, pageToken, numberOfResultsPerPage, iterator} ) {
+	if (!iterator) iterator = 0;
+	let promise = new Promise((resolve, reject) => {
 		youtube.search.list(
 			{
 				part: 'id,snippet',
 				type: 'video',
 				q: query,
-				maxResults: numberOfRequestsPerPage[iterator],
+				maxResults: numberOfResultsPerPage[iterator],
 				pageToken: pageToken ? pageToken : ''
 			}, (err, response) => {
 				if (err) reject({'err': err});
@@ -65,39 +47,29 @@ function getYoutubeVideosInformation( {query, pageToken, numberOfRequestsPerPage
 						'description': item.snippet.description,
 					});	
 				}
-				if (nextPageToken && (iterator + 1) < numberOfRequestsPerPage.length) {
-					getYoutubeVideosInformation( {query, pageToken: nextPageToken, numberOfRequestsPerPage, iterator: (iterator + 1)} )
+				if (nextPageToken && (iterator + 1) < numberOfResultsPerPage.length) {
+					return getYoutubeVideosInformation( {query, pageToken: nextPageToken, numberOfResultsPerPage, iterator: (iterator + 1)} )
+						.then(() => resolve())
 						.catch( (err) => console.log('err 73: ', err))
 				} else {
-					console.log('finish videos length: ', videosList.length)
+					return resolve()
 				}				
-					
-				resolve({nextPageToken});
-
 			}
 		);
 	});
-	promises.push(promise);
 	return promise;
 }
 
+const GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST = 50;
+let maxResults = 177;
 
-// var videos = getYoutubeVideosInformation
+let numberOfResultsPerPage = getNumberOfResultsPerPage( {maxResults} );
 
-// Promise.all(promises)
-// 	.then( data => {
-// 		let allVideosInformation = [];
-// 		data.forEach( (data) => {
-// 			allVideosInformation = [...allVideosInformation, ...data.videosInformation]
-// 		});
-// 		console.log('data: ', allVideosInformation)
-// 	});
+const youtube = getAuthenticatedAPI();
 
-
-// chamar api
-// pegar resultado
-// chamar api
-
-
-
+let videosList = [];
+let query = 'python';
+var a = getYoutubeVideosInformation( {query, numberOfResultsPerPage} )
+	.then(() => console.log('test ', videosList.length))
+	.catch(err => console.log('main err ', err));
 
