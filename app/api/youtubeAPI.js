@@ -1,5 +1,7 @@
 const {google} = require('googleapis');
-var moment = require('moment');
+const moment = require('moment');
+const GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST = 50;
+const youtube = getAuthenticatedAPI();
 
 function getAuthenticatedAPI() {
 	const YOUTUBE_API_KEY = "";
@@ -15,6 +17,7 @@ function getAuthenticatedAPI() {
 function getNumberOfResultsPerPage( {maxResults} ) {
 	let numberOfResultsPerPage = [];
 	let i = maxResults;
+
 	while (i > 0) {
 		if (i >= GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST) {
 			numberOfResultsPerPage.push(GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST);
@@ -24,12 +27,14 @@ function getNumberOfResultsPerPage( {maxResults} ) {
 			i -= i;
 		}
 	}
+
 	return numberOfResultsPerPage;
 }
 
-function getYoutubeVideosInformation( {query, pageToken, numberOfResultsPerPage, iterator} ) {
+function getYoutubeVideosInformationFromAPI( {query, pageToken, numberOfResultsPerPage, iterator, videosList} ) {
 	if (!iterator) iterator = 0;
-	let promise = new Promise((resolve, reject) => {
+
+	return new Promise((resolve, reject) => {
 		youtube.search.list(
 			{
 				part: 'id,snippet',
@@ -39,6 +44,8 @@ function getYoutubeVideosInformation( {query, pageToken, numberOfResultsPerPage,
 				pageToken: pageToken ? pageToken : ''
 			}, (err, response) => {
 				if (err) reject({'err': err});
+
+				// console.log(response.data.items[0])
 
 				let nextPageToken = response.data.nextPageToken;
 				for (item of response.data.items) {
@@ -50,41 +57,38 @@ function getYoutubeVideosInformation( {query, pageToken, numberOfResultsPerPage,
 				}
 
 				if (nextPageToken && (iterator + 1) < numberOfResultsPerPage.length) {
-					return getYoutubeVideosInformation( {query, pageToken: nextPageToken, numberOfResultsPerPage, iterator: (iterator + 1)} )
-						.then(() => resolve())
-						.catch( (err) => console.log('err getYoutubeVideosInformation: ', err))
+					return getYoutubeVideosInformationFromAPI({
+						query, 
+						pageToken: nextPageToken, 
+						numberOfResultsPerPage, 
+						iterator: (iterator + 1),
+						videosList,
+					}).then(() => resolve())
+					.catch((err) => console.log('err getYoutubeVideosInformationFromAPI: ', err));
 				} else {
-					return resolve()
+					return resolve();
 				}				
 			}
 		);
 	});
-	return promise;
 }
 
 function getInitialAndFinalPositions( {numberOfResultsPerPage, iterator} ) {
-
-	// console.log('it ', iterator)
-
 	let initialPosition = numberOfResultsPerPage.slice(0, iterator).reduce((a, b) => a + b, 0);
 	let finalPosition = initialPosition + numberOfResultsPerPage[iterator];
 
 	if (iterator == 0)
 		finalPosition -= 1;
 
-	// console.log('diff ', finalPosition - initialPosition)
-
-	// console.log('init ', initialPosition, ' | final ', finalPosition)
-
 	return {initialPosition, finalPosition};
 }
 
-function getVideosDuration( {videosIds, numberOfResultsPerPage, iterator} ) {
+function getVideosDuration( {videosIds, numberOfResultsPerPage, iterator, videosDuration} ) {
 	if (!iterator) iterator = 0;
 
 	let {initialPosition, finalPosition} = getInitialAndFinalPositions( {numberOfResultsPerPage, iterator} );
 
-	let promise = new Promise((resolve, reject) => {
+	return new Promise((resolve, reject) => {
 		youtube.videos.list(
 			{
 				part: 'id,contentDetails',
@@ -98,7 +102,12 @@ function getVideosDuration( {videosIds, numberOfResultsPerPage, iterator} ) {
 				}
 
 				if ((iterator + 1) < numberOfResultsPerPage.length) {
-					return getVideosDuration( {videosIds, numberOfResultsPerPage, iterator: (iterator + 1)} )
+					return getVideosDuration({
+						videosIds, 
+						numberOfResultsPerPage, 
+						iterator: (iterator + 1),
+						videosDuration
+					})
 						.then(() => resolve())
 						.catch( (err) => console.log('err getVideosDuration: ', err))
 				} else {
@@ -107,49 +116,41 @@ function getVideosDuration( {videosIds, numberOfResultsPerPage, iterator} ) {
 			}
 		);
 	});
-	return promise;
 }
 
-const GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST = 50;
-let maxResults = 177;
-
-let numberOfResultsPerPage = getNumberOfResultsPerPage( {maxResults} );
-
-const youtube = getAuthenticatedAPI();
-
-let videosList = [];
-let videosDuration = {};
-
-let query = 'python';
-var a = getYoutubeVideosInformation( {query, numberOfResultsPerPage} )
-	.then(() => {
-		console.log(videosList.length)
-		logRepeatedIds();
-
-		let videosIds = videosList.map(video => video.id);
-		
-		getVideosDuration( {videosIds, numberOfResultsPerPage} )
-			.then( () => {
-				videosList = videosList.map( (video) => {
-					video['duration'] = videosDuration[video.id]
-					return video
-				})
-			})
-			.catch((err) => console.log('err main getVideosDuration: ', err));
-	})
-	.catch(err => console.log('main err ', err));
-
-function logRepeatedIds() {
-	let ids = {};
-	videosList.forEach( (video) => {
-		if (!ids.hasOwnProperty(video.id))
-			ids[video.id] = 1
-		else 
-			ids[video.id] += 1
+function getVideosListWithDuration( {videosList, videosDuration} ) {
+	var videosListWithDuration = [];
+	videosListWithDuration = videosList.map( (video) => {
+		video['duration'] = videosDuration[video.id]
+		return video
 	});
+	return videosListWithDuration;
+}
 
-	Object.keys(ids).forEach( (key) => {
-		if (ids[key] > 1)
-			console.log(key, ' is repeated - ', ids[key])
-	})
+function getVideosData( {maxResults, query} ) {
+	let numberOfResultsPerPage = getNumberOfResultsPerPage( {maxResults} );
+
+	let videosList = [];
+	let videosDuration = {};
+
+	return new Promise((resolve, reject) => {
+		getYoutubeVideosInformationFromAPI( {query, numberOfResultsPerPage, videosList} )
+			.then(() => {
+				let videosIds = videosList.map(video => video.id);
+				
+				getVideosDuration( {videosIds, numberOfResultsPerPage, videosDuration} )
+					.then( () => {
+						videosList = getVideosListWithDuration( {videosList, videosDuration} );
+						resolve(videosList);
+					})
+					.catch((err) => {
+						console.log('err main getVideosDuration: ', err);
+					});
+			})
+			.catch(err => console.log('main err ', err));
+	});
+}
+
+module.exports = function (maxResults, query) {
+	return getVideosData( {maxResults, query} );
 }
