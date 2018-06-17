@@ -1,0 +1,25 @@
+.col-centered {
+    float: none;
+    margin: 0 auto;
+}
+
+.dark-input-group-text {
+	width: 100px;
+    background: #343a40;
+    color: white;
+    border: white;
+}
+
+.dark-input {
+	border: 1px solid #343a40;
+}
+
+#search-area-title {
+    margin: 20px;
+	color: #343a40;
+}
+
+#search-btn-wrapper {
+    width: 100%;
+	height: 50px;
+}
