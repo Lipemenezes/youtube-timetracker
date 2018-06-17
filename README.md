@@ -13,6 +13,6 @@ Após essa configuração, deve-se acessar o diretório do projeto e rodar os se
 
 `npm install` para instalar as dependências.
 
-`npm server.js` para iniciar a aplicação.
+`npm start` para iniciar a aplicação.
 
 Feito isso, o servidor estará rodando no `localhost:3000`
