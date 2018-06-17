@@ -1,12 +1,13 @@
 const {google} = require('googleapis');
 const moment = require('moment');
 const videoUtils = require('../utils/videoUtils')();
+const config = require('../../config.json');
 
 const GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST = 50;
 const youtube = getAuthenticatedAPI();
 
 function getAuthenticatedAPI() {
-	const YOUTUBE_API_KEY = "";
+	const YOUTUBE_API_KEY = config.GOOGLE_API_KEY;
 
 	const youtube = google.youtube({
 		version: 'v3',
