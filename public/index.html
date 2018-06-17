@@ -6,6 +6,7 @@
 
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+		<link rel="stylesheet" href="css/sk-cube.css">
 		<link rel="stylesheet" href="css/index.css">
 		
 		<script
@@ -31,7 +32,7 @@
 			</div>
 		</nav>
 
-		<div id="search-wrapper" class="col-md-6 col-centered">
+		<section id="search-wrapper" class="col-md-6 col-centered">
 			<h3 id="search-area-title" class="text-center">Minutos disponíveis em cada dia da semana</h3>
 
 			<div id="days-of-the-week-wrapper">
@@ -93,17 +94,23 @@
 			</div>
 
 			<div id="search-btn-wrapper">
-				<span class="text-danger d-none" id="required-fields-alert"><b>Todos os campos são obrigatórios!<b></span>
-				<button onclick="searchVideos()" class="float-right btn btn-dark">Buscar</button>
+				<span class="text-danger d-none" id="required-fields-alert">Todos os campos são obrigatórios!</span>
+				<button onclick="searchVideos()" class="float-right btn btn-dark" id="btn-search-videos">Buscar</button>
 			</div>
-		</div>
+		</section>
 		
-		<div id="list-videos-information-wrapper" class="col-md-6 col-centered">
+		<section id="list-videos-information-wrapper" class="col-md-6 col-centered">
+			<div id="loading" class="d-none">
+				<div class="sk-folding-cube">
+					<div class="sk-cube1 sk-cube"></div>
+					<div class="sk-cube2 sk-cube"></div>
+					<div class="sk-cube4 sk-cube"></div>
+					<div class="sk-cube3 sk-cube"></div>
+				</div>
+			</div>
 			<div id="videos">
 			</div>
-
-		</div>
+		</section>
 		
-
 	</body>
 </html>
