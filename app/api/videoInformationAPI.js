@@ -1,4 +1,4 @@
-const youtubeAPI = require('../api/youtubeAPI');
+const youtubeAPI = require('./youtubeAPI');
 const moment = require('moment');
 
 function getVideosWithValidDuration( {videos, biggestAvailableTime} ) {

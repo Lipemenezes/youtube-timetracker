@@ -2,6 +2,7 @@ const {google} = require('googleapis');
 const moment = require('moment');
 const GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST = 50;
 const youtube = getAuthenticatedAPI();
+const utils = require('../utils/utils')();
 
 function getAuthenticatedAPI() {
 	const YOUTUBE_API_KEY = "";
@@ -12,23 +13,6 @@ function getAuthenticatedAPI() {
 	});
 
 	return youtube;
-}
-
-function getNumberOfResultsPerPage( {maxResults} ) {
-	let numberOfResultsPerPage = [];
-	let i = maxResults;
-
-	while (i > 0) {
-		if (i >= GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST) {
-			numberOfResultsPerPage.push(GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST);
-			i -= GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST;
-		} else {
-			numberOfResultsPerPage.push(i);
-			i -= i;
-		}
-	}
-
-	return numberOfResultsPerPage;
 }
 
 function getYoutubeVideosInformationFromAPI( {query, pageToken, numberOfResultsPerPage, iterator, videosList} ) {
@@ -44,8 +28,6 @@ function getYoutubeVideosInformationFromAPI( {query, pageToken, numberOfResultsP
 				pageToken: pageToken ? pageToken : ''
 			}, (err, response) => {
 				if (err) reject({'err': err});
-
-				// console.log(response.data.items[0])
 
 				let nextPageToken = response.data.nextPageToken;
 				for (item of response.data.items) {
@@ -73,20 +55,10 @@ function getYoutubeVideosInformationFromAPI( {query, pageToken, numberOfResultsP
 	});
 }
 
-function getInitialAndFinalPositions( {numberOfResultsPerPage, iterator} ) {
-	let initialPosition = numberOfResultsPerPage.slice(0, iterator).reduce((a, b) => a + b, 0);
-	let finalPosition = initialPosition + numberOfResultsPerPage[iterator];
-
-	if (iterator == 0)
-		finalPosition -= 1;
-
-	return {initialPosition, finalPosition};
-}
-
 function getVideosDuration( {videosIds, numberOfResultsPerPage, iterator, videosDuration} ) {
 	if (!iterator) iterator = 0;
 
-	let {initialPosition, finalPosition} = getInitialAndFinalPositions( {numberOfResultsPerPage, iterator} );
+	let {initialPosition, finalPosition} = utils.getInitialAndFinalPositions( {numberOfResultsPerPage, iterator} );
 
 	return new Promise((resolve, reject) => {
 		youtube.videos.list(
@@ -119,16 +91,17 @@ function getVideosDuration( {videosIds, numberOfResultsPerPage, iterator, videos
 }
 
 function getVideosListWithDuration( {videosList, videosDuration} ) {
-	var videosListWithDuration = [];
-	videosListWithDuration = videosList.map( (video) => {
+	return videosList.map( (video) => {
 		video['duration'] = videosDuration[video.id]
 		return video
 	});
-	return videosListWithDuration;
 }
 
 function getVideosData( {maxResults, query} ) {
-	let numberOfResultsPerPage = getNumberOfResultsPerPage( {maxResults} );
+	let numberOfResultsPerPage = utils.getNumberOfResultsPerPage({
+		maxResults, 
+		maxAllowedPerPage: GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST
+	});
 
 	let videosList = [];
 	let videosDuration = {};
@@ -139,7 +112,8 @@ function getVideosData( {maxResults, query} ) {
 				let videosIds = videosList.map(video => video.id);
 				
 				getVideosDuration( {videosIds, numberOfResultsPerPage, videosDuration} )
-					.then( () => {
+					.then( (data) => {
+						
 						videosList = getVideosListWithDuration( {videosList, videosDuration} );
 						resolve(videosList);
 					})
@@ -151,6 +125,6 @@ function getVideosData( {maxResults, query} ) {
 	});
 }
 
-module.exports = function (maxResults, query) {
+module.exports = (maxResults, query) => {
 	return getVideosData( {maxResults, query} );
 }
