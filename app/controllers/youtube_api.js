@@ -45,12 +45,61 @@ function getYoutubeVideosInformation( {query, pageToken, numberOfResultsPerPage,
 						'id': item.id.videoId,
 						'title': item.snippet.title,
 						'description': item.snippet.description,
-					});	
+					});
 				}
+
 				if (nextPageToken && (iterator + 1) < numberOfResultsPerPage.length) {
 					return getYoutubeVideosInformation( {query, pageToken: nextPageToken, numberOfResultsPerPage, iterator: (iterator + 1)} )
 						.then(() => resolve())
-						.catch( (err) => console.log('err 73: ', err))
+						.catch( (err) => console.log('err getYoutubeVideosInformation: ', err))
+				} else {
+					return resolve()
+				}				
+			}
+		);
+	});
+	return promise;
+}
+
+function getInitialAndFinalPositions( {numberOfResultsPerPage, iterator} ) {
+
+	// console.log('it ', iterator)
+
+	let initialPosition = numberOfResultsPerPage.slice(0, iterator).reduce((a, b) => a + b, 0);
+	let finalPosition = initialPosition + numberOfResultsPerPage[iterator];
+
+	if (iterator == 0)
+		finalPosition -= 1;
+
+	// console.log('diff ', finalPosition - initialPosition)
+
+	// console.log('init ', initialPosition, ' | final ', finalPosition)
+
+	return {initialPosition, finalPosition};
+}
+
+function getVideosDuration( {videosIds, numberOfResultsPerPage, iterator} ) {
+	if (!iterator) iterator = 0;
+
+	let {initialPosition, finalPosition} = getInitialAndFinalPositions( {numberOfResultsPerPage, iterator} );
+
+	let promise = new Promise((resolve, reject) => {
+		youtube.videos.list(
+			{
+				part: 'id,contentDetails',
+				id: videosIds.slice(initialPosition, finalPosition).join(','),
+				maxResults: numberOfResultsPerPage[iterator],
+			}, (err, response) => {
+				if (err) reject({'err': err});
+
+				for (item of response.data.items) {
+					videosDuration[item.id] = item.contentDetails.duration
+				}
+
+				if ((iterator + 1) < numberOfResultsPerPage.length) {
+					return getVideosDuration( {videosIds, numberOfResultsPerPage, iterator: (iterator + 1)} )
+						.then(() => resolve())
+						.catch( (err) => console.log('err getVideosDuration: ', err))
 				} else {
 					return resolve()
 				}				
@@ -68,8 +117,35 @@ let numberOfResultsPerPage = getNumberOfResultsPerPage( {maxResults} );
 const youtube = getAuthenticatedAPI();
 
 let videosList = [];
+let videosDuration = {};
+
 let query = 'python';
 var a = getYoutubeVideosInformation( {query, numberOfResultsPerPage} )
-	.then(() => console.log('test ', videosList.length))
+	.then(() => {
+		console.log(videosList.length)
+		logRepeatedIds();
+
+		let videosIds = videosList.map(video => video.id);
+		
+		getVideosDuration( {videosIds, numberOfResultsPerPage} )
+			.then( () => {
+				console.log(videosDuration)
+			})
+			.catch((err) => console.log('err main getVideosDuration: ', err));
+	})
 	.catch(err => console.log('main err ', err));
 
+function logRepeatedIds() {
+	let ids = {};
+	videosList.forEach( (video) => {
+		if (!ids.hasOwnProperty(video.id))
+			ids[video.id] = 1
+		else 
+			ids[video.id] += 1
+	});
+
+	Object.keys(ids).forEach( (key) => {
+		if (ids[key] > 1)
+			console.log(key, ' is repeated - ', ids[key])
+	})
+}
