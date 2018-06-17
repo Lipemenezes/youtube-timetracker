@@ -20,7 +20,7 @@ function getTimeScheduleToWatchAllVideos( {videos, availableTimeForDaysOfTheWeek
 		let videosForDay = [];
 
 		while (canAddVideo) {
-			if (videosToWatch[0].duration < availableTimeForDay) {
+			if (videosToWatch[0].duration <= availableTimeForDay) {
 				videosForDay.push(videosToWatch[0]);
 				availableTimeForDay -= videosToWatch[0].duration;
 				videosToWatch.shift();
