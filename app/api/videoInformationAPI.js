@@ -4,6 +4,9 @@ const stringUtils = require('../utils/stringUtils')();
 const moment = require('moment');
 
 function getTimeScheduleToWatchAllVideos( {videos, availableTimeForDaysOfTheWeek} ) {
+
+	if (!videos.length) return [];
+
 	let dayOfTheWeek = moment().day();
 	
 	const availableTimeForDaysOfTheWeekInSeconds = availableTimeForDaysOfTheWeek.map(v => v * 60);
@@ -66,22 +69,8 @@ function getVideosData( {availableTimeForDaysOfTheWeek, maxResults, query} ) {
 			})
 			.catch(err => reject('err ', err));
 	});
-
 }
 
 module.exports = function (maxResults, query, availableTimeForDaysOfTheWeek) {
 	return getVideosData( {maxResults, query, availableTimeForDaysOfTheWeek} );
 }
-
-// const maxResults = 200;
-// const query = 'python';
-// const availableTimeForDaysOfTheWeek = [50, 30, 120, 190, 250, 0, 15];
-
-// getVideosData( {maxResults, query, availableTimeForDaysOfTheWeek} )
-// 	.then(data => {
-// 		console.log(
-// 			data.timeScheduleToWatchAllVideos.length,
-// 			data.words
-// 		)
-// 	})
-// 	.catch(err => console.error('erro no getVideosData de fora', err))
