@@ -1,4 +1,5 @@
 const {google} = require('googleapis');
+var moment = require('moment');
 
 function getAuthenticatedAPI() {
 	const YOUTUBE_API_KEY = "";
@@ -93,7 +94,7 @@ function getVideosDuration( {videosIds, numberOfResultsPerPage, iterator} ) {
 				if (err) reject({'err': err});
 
 				for (item of response.data.items) {
-					videosDuration[item.id] = item.contentDetails.duration
+					videosDuration[item.id] = moment.duration(item.contentDetails.duration).asSeconds();
 				}
 
 				if ((iterator + 1) < numberOfResultsPerPage.length) {
@@ -129,7 +130,10 @@ var a = getYoutubeVideosInformation( {query, numberOfResultsPerPage} )
 		
 		getVideosDuration( {videosIds, numberOfResultsPerPage} )
 			.then( () => {
-				console.log(videosDuration)
+				videosList = videosList.map( (video) => {
+					video['duration'] = videosDuration[video.id]
+					return video
+				})
 			})
 			.catch((err) => console.log('err main getVideosDuration: ', err));
 	})
