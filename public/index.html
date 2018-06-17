@@ -1,19 +1,157 @@
 <!doctype html>
 <html lang="en">
-	<head>	
+	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+		
+		<script
+		  src="https://code.jquery.com/jquery-3.3.1.min.js"
+		  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+		  crossorigin="anonymous"></script>
 
-		<title>Hello, world!</title>
+		<title>YouTube Timetracker</title>
 	</head>
 
+	<script type="text/javascript">
+
+		function getDaysOfTheWeekMinutesData() {
+			let daysOfTheWeekMinutes = [];
+
+			$('.time-input').each(function() { 
+				daysOfTheWeekMinutes.push($(this).val());
+			});
+
+			return daysOfTheWeekMinutes;
+		}
+
+		function request() {
+			let query = $('#query').val();
+			let maxResults = 200;
+			let daysOfTheWeekMinutesData = getDaysOfTheWeekMinutesData();
+
+			if (!query || !maxResults || !daysOfTheWeekMinutesData) {
+				console.error('cancelado request')
+				return null;
+			}
+			console.log('feito request')
+			$.getJSON({
+				url: `/video-information?maxResults=${maxResults}&query=${query}&daysTime=${daysOfTheWeekMinutesData.join(',')}`,
+				success: response => {
+					console.log('success \n', response)
+				},
+			});
+		}
+	</script>
+
+	<style type="text/css">
+			
+		.col-centered {
+		    float: none;
+		    margin: 0 auto;
+		}
+
+		.dark-input-group-text {
+			width: 100px;
+		    background: #343a40;
+		    color: white;
+		    border: white;
+		}
+
+		.dark-input {
+			border: 1px solid #343a40;
+		}
+
+		#search-area-title {
+		    margin: 20px;
+    		color: #343a40;
+		}
+
+	</style>
+
 	<body>
-		<div style="display: -webkit-box;">
-			<div style="background-color: red; height: 100vh; width: 50px;"></div>
-			<div style="background-color: blue; height: 100vh; width: calc(100% - 50px);"></div>
+		<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+			<a class="navbar-brand" href="#">
+				<i class="fab fa-youtube"></i>
+				Timetracker
+			</a>
+
+			<div class="collapse navbar-collapse" id="navbarSupportedContent">
+				<ul class="navbar-nav mr-auto">
+
+				</ul>
+			</div>
+		</nav>
+
+		<div id="search-wrapper" class="col-md-6 col-centered">
+			<h3 id="search-area-title" class="text-center">Minutos disponíveis em cada dia da semana</h3>
+
+			<div id="days-of-the-week-wrapper">
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<span class="input-group-text dark-input-group-text" id="sunday-addon">Domingo</span>
+					</div>
+					<input type="text" class="form-control time-input dark-input" id="sunday" placeholder="tempo (min)" aria-describedby="sunday-addon">
+				</div>
+
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<span class="input-group-text dark-input-group-text" id="monday-addon">Segunda</span>
+					</div>
+					<input type="text" class="form-control time-input dark-input" id="monday" placeholder="tempo (min)" aria-describedby="monday-addon">
+				</div>
+
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<span class="input-group-text dark-input-group-text" id="tuesday-addon">Terça</span>
+					</div>
+					<input type="text" class="form-control time-input dark-input" id="tuesday" placeholder="tempo (min)" aria-describedby="tuesday-addon">
+				</div>
+
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<span class="input-group-text dark-input-group-text" id="wednesday-addon">Quarta</span>
+					</div>
+					<input type="text" class="form-control time-input dark-input" id="wednesday" placeholder="tempo (min)" aria-describedby="wednesday-addon">
+				</div>
+
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<span class="input-group-text dark-input-group-text" id="thursday-addon">Quinta</span>
+					</div>
+					<input type="text" class="form-control time-input dark-input" id="thursday" placeholder="tempo (min)" aria-describedby="thursday-addon">
+				</div>
+
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<span class="input-group-text dark-input-group-text" id="friday-addon">Sexta</span>
+					</div>
+					<input type="text" class="form-control time-input dark-input" id="friday" placeholder="tempo (min)" aria-describedby="friday-addon">
+				</div>
+
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<span class="input-group-text dark-input-group-text" id="saturday-addon">Sábado</span>
+					</div>
+					<input type="text" class="form-control time-input dark-input" id="saturday" placeholder="tempo (min)" aria-describedby="saturday-addon">
+				</div>
+			</div>
+			
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text dark-input-group-text" id="query-addon">Busca</span>
+				</div>
+				<input type="text" class="form-control dark-input" id="query" placeholder="palavras chave" aria-describedby="query-addon">
+			</div>
+
+			<button onclick="request()" class="float-right btn btn-dark">Buscar</button>
 		</div>
-		
+
+		<div id="list-videos-information-wrapper">
+
+		</div>
+
 	</body>
 </html>
