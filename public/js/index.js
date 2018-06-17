@@ -5,10 +5,9 @@ $(document).ready(() => {
 function activateEventListeners() {
 	$('#search-wrapper').keyup( evt => {
 		if (evt.keyCode === 13) {
-			console.log('enter')
-	    } else {
-			console.log('key')    
-		}
+			if (!$('#btn-search-videos').prop('disabled'))
+				searchVideos()
+	    }
 	});
 }
 
@@ -34,37 +33,6 @@ function getDataToSearchVideo() {
 	if (daysOfTheWeekMinutesData.length < 7) return null;
 
 	return {query, maxResults, daysOfTheWeekMinutesData};
-}
-
-function getVideosInformationHTML( {data, query} ) {
-	let videoHTML = `
-		<h5>Videos sobre ${query}</h5>
-		<h6>Tempo necessário para assistir a todos os videos: <b>${data.requiredTimeToWatchAllVideos} dias</b></h6>
-		<h6>Palavras mais usadas nos títulos e descrição dos videos:</h6>
-		<ol>
-	`;
-
-	for (i = data.words.length; i > 0; i--) {
-		videoHTML += `<li><b>${data.words[i - 1].word}</b> - ${data.words[i - 1].timesUsed} vezes </li>`;
-	}
-
-	videoHTML += `
-		</ol>
-		<h5>Todos os videos</h5>
-		<ul>
-	`;
-
-	data.videos.forEach( video => {
-		videoHTML += `
-			<li>
-				<a target='_blank' href='https://www.youtube.com/watch?v=${video.id}'>${video.title}</a>
-			</li>
-		`;
-	});
-
-	videoHTML += `</ul>`
-
-	return videoHTML;
 }
 
 function getVideosInformation( {query, maxResults, daysOfTheWeekMinutesData} ) {
@@ -108,9 +76,9 @@ function searchVideos() {
 	let data = getDataToSearchVideo();
 
 	disableSearchButton();
-	$('#videos').empty();
 
 	if (data) {
+		$('#videos').empty();
 		showLoading();
 		hideRequiredFieldsAlert();
 		getVideosInformation( data );
