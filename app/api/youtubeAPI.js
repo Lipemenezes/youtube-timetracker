@@ -2,7 +2,7 @@ const {google} = require('googleapis');
 const moment = require('moment');
 const GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST = 50;
 const youtube = getAuthenticatedAPI();
-const utils = require('../utils/utils')();
+const videoUtils = require('../utils/videoUtils')();
 
 function getAuthenticatedAPI() {
 	const YOUTUBE_API_KEY = "";
@@ -58,7 +58,7 @@ function getYoutubeVideosInformationFromAPI( {query, pageToken, numberOfResultsP
 function getVideosDuration( {videosIds, numberOfResultsPerPage, iterator, videosDuration} ) {
 	if (!iterator) iterator = 0;
 
-	let {initialPosition, finalPosition} = utils.getInitialAndFinalPositions( {numberOfResultsPerPage, iterator} );
+	let {initialPosition, finalPosition} = videoUtils.getInitialAndFinalPositions( {numberOfResultsPerPage, iterator} );
 
 	return new Promise((resolve, reject) => {
 		youtube.videos.list(
@@ -81,7 +81,7 @@ function getVideosDuration( {videosIds, numberOfResultsPerPage, iterator, videos
 						videosDuration
 					})
 						.then(() => resolve())
-						.catch( (err) => console.log('err getVideosDuration: ', err))
+						.catch(err => console.log("getVideosDuration loop catch", err))
 				} else {
 					return resolve()
 				}				
@@ -90,15 +90,8 @@ function getVideosDuration( {videosIds, numberOfResultsPerPage, iterator, videos
 	});
 }
 
-function getVideosListWithDuration( {videosList, videosDuration} ) {
-	return videosList.map( (video) => {
-		video['duration'] = videosDuration[video.id]
-		return video
-	});
-}
-
 function getVideosData( {maxResults, query} ) {
-	let numberOfResultsPerPage = utils.getNumberOfResultsPerPage({
+	let numberOfResultsPerPage = videoUtils.getNumberOfResultsPerPage({
 		maxResults, 
 		maxAllowedPerPage: GOOGLE_MAX_ALLOWED_RESULTS_PER_REQUEST
 	});
@@ -113,15 +106,12 @@ function getVideosData( {maxResults, query} ) {
 				
 				getVideosDuration( {videosIds, numberOfResultsPerPage, videosDuration} )
 					.then( (data) => {
-						
-						videosList = getVideosListWithDuration( {videosList, videosDuration} );
+						videosList = videoUtils.getVideosListWithDuration( {videosList, videosDuration} );
 						resolve(videosList);
 					})
-					.catch((err) => {
-						console.log('err main getVideosDuration: ', err);
-					});
+					.catch((err) => console.log("first getVideosDuration catch", err));
 			})
-			.catch(err => console.log('main err ', err));
+			.catch(err => console.log("getVideosData catch", err));
 	});
 }
 

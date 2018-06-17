@@ -25,9 +25,23 @@ function getInitialAndFinalPositions( {numberOfResultsPerPage, iterator} ) {
 	return {initialPosition, finalPosition};
 }
 
+function getVideosListWithDuration( {videosList, videosDuration} ) {
+	return videosList.map( (video) => {
+		video['duration'] = videosDuration[video.id]
+		return video
+	});
+}
+
+function getVideosWithValidDuration( {videos, biggestAvailableTime} ) {
+	let biggestAvailableTimeInSeconds = biggestAvailableTime * 60;
+	return videos.filter(video => video.duration <= biggestAvailableTimeInSeconds);
+}
+
 module.exports = () => {
 	return {
 		getNumberOfResultsPerPage,
-		getInitialAndFinalPositions
+		getInitialAndFinalPositions,
+		getVideosListWithDuration,
+		getVideosWithValidDuration,
 	}
 }
