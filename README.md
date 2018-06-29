@@ -5,7 +5,7 @@ Aplicação desenvolvida para que o usuário, dado um tempo disponível em cada 
 ### Rodando o projeto
 É necessário ter o [Node.js](https://nodejs.org/en/download/) instalado para execução do projeto.
 
-Após fazer o clone do repositório, é necessário acessar o arquivo `config.json`, que fica na pasta raiz do projeto, e inserir uma chave do google para a API v3 do YouTube.
+Após fazer o clone do repositório, é necessário acessar o arquivo `config.json`, que fica na pasta `config`, e inserir uma chave do google para a API v3 do YouTube.
 
 Para conseguir a chave da api, é preciso acessar o seu [console do google cloud.](https://console.cloud.google.com/apis/credentials)
 
